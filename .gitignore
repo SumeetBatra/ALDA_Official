@@ -1,0 +1,9 @@
+.idea/
+imgui.ini
+__pycache__
+results/
+train_dir/
+wandb/
+videos/
+cache/
+datasets/

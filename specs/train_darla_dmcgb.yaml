@@ -1,0 +1,14 @@
+name: darla_ball_in_cup_catch
+trainer:
+  class: DARLA
+  module: trainers.darla_trainer
+  config:
+    seed: 0
+    n_train_steps: 500_000
+    batch_size: 64
+    env:
+      domain_name: ball_in_cup
+      task_name: catch
+      frame_stack: 3
+      action_repeat: 4
+      episode_length: 1000
