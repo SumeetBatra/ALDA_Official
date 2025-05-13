@@ -29,7 +29,7 @@ def parse_command_line(args: Optional[Sequence[str]] = None) -> Namespace:
     # wandb config params
     parser.add_argument('--use_wandb', type=lambda x: bool(strtobool(x)), default=False)
     parser.add_argument('--wandb_entity', type=str, default='qdrl')
-    parser.add_argument('--wandb_project', type=str, default='ai_sim2real')
+    parser.add_argument('--wandb_project', type=str, default='alda')
     parser.add_argument('--wandb_group', type=str, default='alda')
     parser.add_argument('--wandb_run_name', type=str, default='alda_dmcgb')
     parser.add_argument('--wandb_tag', type=str, default='dmcgb')
