@@ -11,6 +11,7 @@ trainer:
     values_per_latent: 12
     beta: 100
     n_train_steps: 500_000
+    use_quant_loss: true
     env:
       domain_name: finger
       task_name: spin

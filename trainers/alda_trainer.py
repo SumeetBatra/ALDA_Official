@@ -65,6 +65,7 @@ class ALDA(TrainerBase):
     num_latents: int = 12
     values_per_latent: int = 12
     beta: float = 100.
+    use_quant_loss: bool = False
 
     # eval and saving
     eval_n_steps: int = 10_000
@@ -406,6 +407,9 @@ class ALDA(TrainerBase):
         outs = {'pre_z': pre_z, **outs_latent}
 
         commitment_loss = (outs['z_continuous'] - outs['z_quantized'].detach()).pow(2).mean(1)
+        quantization_loss = torch.Tensor([0.0]).to(self.device)
+        if self.use_quant_loss:
+            quantization_loss = (outs['z_continuous'].detach() - outs['z_quantized']).pow(2).mean(1)
         bce_loss = F.binary_cross_entropy_with_logits(x_hat_logits, target=obs)
 
         psnr = peak_signal_to_noise_ratio(x_hat_logits, obs)
@@ -425,6 +429,7 @@ class ALDA(TrainerBase):
         }
 
         total_loss = lambdas['commitment'] * commitment_loss + \
+                     lambdas['quantization'] * quantization_loss + \
                      lambdas['binary_cross_entropy'] * bce_loss
 
         total_loss = total_loss.mean()
@@ -444,10 +449,12 @@ class ALDA(TrainerBase):
 
         # logging
         # self.eval_aux = aux
-        self.logging_info.setdefault('qlae/total_loss', []).append(total_loss)
-        self.logging_info.setdefault('qlae/commitment_loss', []).append(commitment_loss.mean())
-        self.logging_info.setdefault('qlae/bce_loss', []).append(bce_loss.mean())
-        self.logging_info.setdefault('qlae/psnr', []).append(psnr.mean().detach().cpu())
+        self.logging_info.setdefault('alda/total_loss', []).append(total_loss)
+        self.logging_info.setdefault('alda/commitment_loss', []).append(commitment_loss.mean())
+        self.logging_info.setdefault('alda/quantization_loss', []).append(quantization_loss.mean())
+
+        self.logging_info.setdefault('alda/bce_loss', []).append(bce_loss.mean())
+        self.logging_info.setdefault('alda/psnr', []).append(psnr.mean().detach().cpu())
 
     def update(self, replay_buffer, step):
         obs, action, reward, next_obs, not_done = replay_buffer.sample()
@@ -523,7 +530,7 @@ class ALDA(TrainerBase):
                 self.logging_info.setdefault('eval/episode_reward', []).append(episode_reward)
             episode_rewards.append(episode_reward)
 
-        # perturb latents and visualize reconstructions for QLAE
+        # perturb latents and visualize reconstructions
         if self.eval_aux and self.use_wandb:
             # log_reconstruction_metrics(self.eval_aux, step, use_wandb=self.use_wandb)
             num_samples = 16
