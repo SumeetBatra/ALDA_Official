@@ -4,8 +4,6 @@ trainer:
   module: trainers.alda_trainer
   config:
     seed: 0
-    use_depth: false
-    use_data_aug: false
     batch_size: 128
     num_latents: 12
     values_per_latent: 12
